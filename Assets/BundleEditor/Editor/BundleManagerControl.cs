@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿using System;
+using System.Collections.Generic;
+using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
@@ -12,7 +14,8 @@ namespace AssetBundles
         [SerializeField]
         private TreeViewState m_bundleTreeState;
         private BundleTreeView m_BundleTreeView;
-
+        [SerializeField]
+        MultiColumnHeaderState m_AssetListMCHState;
         [SerializeField]
         private TreeViewState m_assetTreeState;
         private AssetListTreeView m_assetList;
@@ -71,7 +74,12 @@ namespace AssetBundles
             {
                 if (m_assetTreeState == null)
                     m_assetTreeState = new TreeViewState();
-                m_assetList = new AssetListTreeView(m_assetTreeState);
+                var headerState = AssetListTreeView.CreateDefaultMultiColumnHeaderState();
+                if (MultiColumnHeaderState.CanOverwriteSerializedFields(m_AssetListMCHState, headerState))
+                    MultiColumnHeaderState.OverwriteSerializedFields(m_AssetListMCHState, headerState);
+                m_AssetListMCHState = headerState;
+
+                m_assetList = new AssetListTreeView(m_assetTreeState, m_AssetListMCHState, this);
                 m_assetList.Reload();
 
                 if (m_bundleTreeState == null)
@@ -111,6 +119,10 @@ namespace AssetBundles
                 m_parent.Repaint();
         }
 
+        public void SetSelectedItems(object p)
+        {
+        }
+
         private void RefreshManual()
         {
         }
@@ -137,6 +149,12 @@ namespace AssetBundles
 
             if (Event.current.type == EventType.MouseUp)
                 m_resizingHorizontalSplitter = false;
+        }
+
+        public void UpdateSelectedBundles(IList<BundleDataInfo> bundles)
+        {
+            m_assetList.SetSelectedBundles(bundles);
+            m_BundleTreeView.Reload();
         }
     }
 }

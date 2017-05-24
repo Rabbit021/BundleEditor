@@ -38,6 +38,7 @@ namespace AssetBundles
                 extraSpaceBeforeIconAndLabel = 0f;
             base.RowGUI(args);
         }
+
         protected override void SelectionChanged(IList<int> selectedIds)
         {
             var selectedBundles = new List<BundleDataInfo>();
@@ -46,8 +47,9 @@ namespace AssetBundles
                 var item = FindItem(id, rootItem) as BundleTreeItem;
                 selectedBundles.Add(item.BundleData);
             }
-            //m_Controller.UpdateSelectedBundles(selectedBundles);           
+            m_Controller.UpdateSelectedBundles(selectedBundles);
         }
+
         protected override bool CanRename(TreeViewItem item)
         {
             return item.displayName.Length > 0;
@@ -292,7 +294,7 @@ namespace AssetBundles
             DragAndDrop.paths = null;
             DragAndDrop.objectReferences = m_EmptyObjectList.ToArray();
             DragAndDrop.SetGenericData("BundleDataInfo", selectedBundles);
-            DragAndDrop.visualMode = DragAndDropVisualMode.Copy;//Move;
+            DragAndDrop.visualMode = DragAndDropVisualMode.Copy; //Move;
             DragAndDrop.StartDrag("AssetBundleTree");
         }
 

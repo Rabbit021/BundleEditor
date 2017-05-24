@@ -17,9 +17,16 @@ namespace AssetBundles
 
         public AssetInfo(string assetName, string bundleName = "")
         {
-            m_AssetName = assetName;
+            assetName = assetName + "";
+            fullAssetName = assetName;
             m_BundleName = bundleName;
-            isScene = false;
+            m_Parents = new HashSet<string>();
+            isScene = assetName.EndsWith(".unity");
+        }
+
+        public int nameHashCode
+        {
+            get { return fullAssetName.GetHashCode(); }
         }
 
         public string fullAssetName
@@ -27,17 +34,20 @@ namespace AssetBundles
             get { return m_AssetName; }
             set
             {
+
                 m_AssetName = value;
                 m_DisplayName = System.IO.Path.GetFileNameWithoutExtension(m_AssetName);
-                var fileinfo = new System.IO.FileInfo(m_AssetName);
-                fileSize = fileinfo.Exists ? fileinfo.Length : 0;
+                if (!string.IsNullOrEmpty(m_AssetName))
+                {
+                    var fileinfo = new System.IO.FileInfo(m_AssetName);
+                    fileSize = fileinfo.Exists ? fileinfo.Length : 0;
+                }
             }
         }
 
         public string displayName
         {
             get { return m_DisplayName; }
-            set { m_DisplayName = value; }
         }
 
         public string bundleName
@@ -80,6 +90,7 @@ namespace AssetBundles
                 m_Denpendences = new List<AssetInfo>();
                 if (AssetDatabase.IsValidFolder(m_AssetName))
                 {
+
                 }
                 else
                 {
@@ -87,7 +98,7 @@ namespace AssetBundles
                     {
                         if (dep != m_AssetName)
                         {
-                            // TODO
+                            m_Denpendences.Add(new AssetInfo(dep));
                         }
                     }
                 }

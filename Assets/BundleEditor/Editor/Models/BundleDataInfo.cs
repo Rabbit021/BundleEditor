@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEditor;
 using System;
+using System.Linq;
 
 namespace AssetBundles
 {
@@ -8,9 +9,9 @@ namespace AssetBundles
     public class BundleDataInfo
     {
         public string m_Name;
-
         public List<AssetInfo> m_ConcreteAssets;
         public List<AssetInfo> m_DependentAssets;
+        public HashSet<string> m_BundleDependencies;
 
         public int m_ConcreteCounter;
         public int m_DependentCounter;
@@ -33,6 +34,7 @@ namespace AssetBundles
         {
             m_ConcreteAssets = new List<AssetInfo>();
             m_DependentAssets = new List<AssetInfo>();
+            m_BundleDependencies = new HashSet<string>();
             m_ConcreteCounter = 0;
             m_DependentCounter = 0;
             m_Name = name;
@@ -71,7 +73,41 @@ namespace AssetBundles
 
         public void Refresh()
         {
-            // 
+            foreach (var itr in m_ConcreteAssets)
+            {
+                m_DependentAssets.AddRange(itr.GetDependencies());
+            }
+            BundleModel.Rebuild();
+        }
+
+        public List<string> GetBundleDependencies()
+        {
+            return m_DependentAssets.Select(x => x.fullAssetName).ToList();
+        }
+
+        public void AddAssetsToNode(AssetTreeItem root)
+        {
+            if (root == null) return;
+            foreach (var itr in m_ConcreteAssets)
+                root.AddChild(new AssetTreeItem(itr));
+
+            foreach (var itr in m_DependentAssets)
+            {
+                if (!root.ContainsChild(itr))
+                    root.AddChild(new AssetTreeItem(itr));
+            }
+        }
+
+        public void AddAssets(AssetInfo asset)
+        {
+            m_ConcreteAssets.Add(asset);
+            Refresh();
+        }
+
+        public void DeleteAsset(AssetInfo asset)
+        {
+            m_ConcreteAssets.Remove(asset);
+            Refresh();
         }
     }
 }

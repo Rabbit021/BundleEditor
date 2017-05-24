@@ -47,6 +47,22 @@ namespace AssetBundles
             return root;
         }
 
+        public static AssetTreeItem CreateAssetListTreeView(List<BundleDataInfo> selectes)
+        {
+            var root = new AssetTreeItem();
+            root.children = new List<TreeViewItem>();
+
+            if (selectes != null)
+            {
+                foreach (var itr in selectes)
+                {
+                    if (itr == null) continue;
+                    itr.AddAssetsToNode(root);
+                }
+            }
+            return root;
+        }
+
         public static void HandleBundleDelete(IEnumerable<BundleDataInfo> assetBundleInfos)
         {
             foreach (var itr in assetBundleInfos)
@@ -58,16 +74,6 @@ namespace AssetBundles
         {
             bool result = item.BundleData.HandleRename(newName);
             return result;
-        }
-
-        public static AssetTreeItem CreateAssetListTreeView(IEnumerable<AssetInfo> selectedBundles)
-        {
-            var root = new AssetTreeItem();
-            if (selectedBundles != null)
-            {
-
-            }
-            return root;
         }
 
         public static string GetUniqueName(string suggestedName)
@@ -89,6 +95,7 @@ namespace AssetBundles
         {
             return m_BundleList.FirstOrDefault(x => x.m_Name == name);
         }
+
         public static void Rebuild()
         {
             Save();
@@ -98,6 +105,7 @@ namespace AssetBundles
         {
             var str = JArray.FromObject(m_BundleList).ToString(Formatting.Indented);
             File.WriteAllText(savePath, str);
+            AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
 
@@ -116,17 +124,41 @@ namespace AssetBundles
 
         public static void HandleBundleMerge(List<BundleDataInfo> draggedNodes, BundleDataInfo targetDataBundle)
         {
-
         }
 
         public static void MoveAssetToBundle(string[] assetPaths, string bundleName)
         {
-            var info = GetBundleDataInfo(bundleName);
+            foreach (var itr in assetPaths)
+                MoveAssetToBundle(itr, bundleName);
         }
 
         public static void MoveAssetToBundle(string assetPath, string bundleName)
         {
-            var info = GetBundleDataInfo(bundleName);
+            var asset = new AssetInfo(assetPath, bundleName);
+            MoveAssetToBundle(asset, bundleName);
+        }
+
+        public static void MoveAssetToBundle(List<AssetInfo> assets, string bundleName)
+        {
+            foreach (var asset in assets)
+                MoveAssetToBundle(asset, bundleName);
+        }
+
+        private static void MoveAssetToBundle(AssetInfo asset, string bundleName)
+        {
+            if (string.IsNullOrEmpty(bundleName))
+            {
+                // TOOD 删除
+                var bundle = GetBundleDataInfo(asset.bundleName);
+                if (bundle != null)
+                    bundle.DeleteAsset(asset);
+            }
+            else
+            {
+                var bundle = GetBundleDataInfo(bundleName);
+                if (bundle != null)
+                    bundle.AddAssets(asset);
+            }
         }
 
         public static AssetInfo CreateAsset(string name, string bundleName)
@@ -155,7 +187,6 @@ namespace AssetBundles
                 info.AddParent(parent.displayName);
                 return info;
             }
-
         }
 
         public static bool ValidateAsset(string name)
