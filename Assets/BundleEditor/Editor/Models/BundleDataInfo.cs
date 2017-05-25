@@ -73,16 +73,22 @@ namespace AssetBundles
 
         public void Refresh()
         {
+            m_DependentAssets.Clear();
             foreach (var itr in m_ConcreteAssets)
             {
                 m_DependentAssets.AddRange(itr.GetDependencies());
             }
-            BundleModel.Rebuild();
+            BundleModel.Save();
         }
 
         public List<string> GetBundleDependencies()
         {
             return m_DependentAssets.Select(x => x.fullAssetName).ToList();
+        }
+
+        public List<string> GetConcreteAssets()
+        {
+            return m_ConcreteAssets.Select(x => x.fullAssetName).ToList();
         }
 
         public void AddAssetsToNode(AssetTreeItem root)

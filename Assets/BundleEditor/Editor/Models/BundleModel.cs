@@ -19,21 +19,21 @@ namespace AssetBundles
         private static BundleDataInfo m_RootLevelDataInfo = new BundleDataInfo("root");
         private static List<BundleDataInfo> m_BundleList = new List<BundleDataInfo>();
         private static Dictionary<string, AssetInfo> m_GlobalAssetList = new Dictionary<string, AssetInfo>();
+
         private static Dictionary<string, HashSet<string>> m_DependencyTracker = new Dictionary<string, HashSet<string>>();
 
         public static BundleDataInfo CreateEmptyBundle(string newName = null)
         {
             var bundle = new BundleDataInfo(GetUniqueName(newName));
             m_BundleList.Add(bundle);
-            Rebuild();
+            Save();
             return bundle;
         }
 
         public static BundleDataInfo CreateEmptyBundle(BundleDataInfo info = null, string newName = null)
         {
-            var name = info == null ? k_NewBundleName : info.m_Name + "";
-            GetUniqueName(name);
-            return CreateEmptyBundle(name);
+            var name = newName;
+            return CreateEmptyBundle(GetUniqueName(name));
         }
 
         public static BundleTreeItem CreateAssetBundleTreeView()
@@ -67,7 +67,7 @@ namespace AssetBundles
         {
             foreach (var itr in assetBundleInfos)
                 m_BundleList.Remove(itr);
-            Rebuild();
+            Save();
         }
 
         public static bool HandleBundleRename(BundleTreeItem item, string newName)
@@ -96,11 +96,6 @@ namespace AssetBundles
             return m_BundleList.FirstOrDefault(x => x.m_Name == name);
         }
 
-        public static void Rebuild()
-        {
-            Save();
-        }
-
         public static void Save()
         {
             var str = JArray.FromObject(m_BundleList).ToString(Formatting.Indented);
@@ -109,7 +104,13 @@ namespace AssetBundles
             AssetDatabase.Refresh();
         }
 
-        public static void Refresh()
+        public static void RefreshList()
+        {
+            foreach (var itr in m_BundleList)
+                itr.Refresh();
+        }
+
+        public static void Reload()
         {
             if (!File.Exists(savePath))
             {
@@ -118,8 +119,6 @@ namespace AssetBundles
             }
             var json = File.ReadAllText(savePath);
             m_BundleList = JArray.Parse(json).ToObject<List<BundleDataInfo>>() ?? new List<BundleDataInfo>();
-
-            // TOD 刷新依赖项
         }
 
         public static void HandleBundleMerge(List<BundleDataInfo> draggedNodes, BundleDataInfo targetDataBundle)
@@ -197,6 +196,26 @@ namespace AssetBundles
             if (ext == ".dll" || ext == ".cs" || ext == ".meta" || ext == ".js" || ext == ".boo")
                 return false;
             return true;
+        }
+
+        public static void Analysize()
+        {
+            Debug.ClearDeveloperConsole();
+        }
+
+        public static void BuildAssetBundles(string outpath, BuildAssetBundleOptions options, BuildTarget target)
+        {
+            // TODO
+            var lst = new AssetBundleBuild[m_BundleList.Count];
+            for (var i = 0; i < m_BundleList.Count; i++)
+            {
+                var itr = m_BundleList[i];
+                var build = new AssetBundleBuild();
+                build.assetBundleName = itr.m_Name;
+                build.assetNames = itr.GetConcreteAssets().ToArray();
+                lst[i] = build;
+            }
+            BuildPipeline.BuildAssetBundles(outpath, lst, options, target);
         }
     }
 }

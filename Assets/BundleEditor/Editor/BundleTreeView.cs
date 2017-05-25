@@ -16,7 +16,7 @@ namespace AssetBundles
 
         public BundleTreeView(TreeViewState state, BundleManagerControl ctrl) : base(state)
         {
-            BundleModel.Refresh();
+            BundleModel.Reload();
             m_Controller = ctrl;
             showBorder = true;
         }

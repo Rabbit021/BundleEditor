@@ -29,13 +29,15 @@ namespace AssetBundles
             get { return fullAssetName.GetHashCode(); }
         }
 
+        public string assetId { get; set; }
+
         public string fullAssetName
         {
             get { return m_AssetName; }
             set
             {
-
                 m_AssetName = value;
+                assetId = AssetDatabase.AssetPathToGUID(m_AssetName);
                 m_DisplayName = System.IO.Path.GetFileNameWithoutExtension(m_AssetName);
                 if (!string.IsNullOrEmpty(m_AssetName))
                 {
@@ -90,7 +92,6 @@ namespace AssetBundles
                 m_Denpendences = new List<AssetInfo>();
                 if (AssetDatabase.IsValidFolder(m_AssetName))
                 {
-
                 }
                 else
                 {

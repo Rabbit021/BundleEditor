@@ -53,23 +53,7 @@ namespace AssetBundles
 
         public void OnGUI(Rect pos)
         {
-            var rect = new Rect(0, 0, pos.width, 30);
-            GUILayout.BeginArea(rect);
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Button("刷新", GUILayout.ExpandHeight(true)))
-            {
-                BundleModel.Refresh();
-                m_BundleTreeView.Reload();
-                m_assetList.Reload();
-            }
-            if (GUILayout.Button("保存", GUILayout.ExpandHeight(true)))
-            {
-                BundleModel.Save();
-            }
-            GUILayout.EndHorizontal();
-            GUILayout.EndArea();
-
-            m_position = new Rect(0, 30, pos.width, pos.height - 30);
+            m_position = pos;
             if (m_BundleTreeView == null)
             {
                 if (m_assetTreeState == null)
@@ -154,6 +138,7 @@ namespace AssetBundles
         public void UpdateSelectedBundles(IList<BundleDataInfo> bundles)
         {
             m_assetList.SetSelectedBundles(bundles);
+            m_assetList.Reload();
             m_BundleTreeView.Reload();
         }
     }
