@@ -5,15 +5,13 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace AssetBundles
 {
     public class BundleModel
     {
         private const string k_NewBundleName = "newbundle";
-        private const string savePath = "Assets/BundleEditor/Editor/save.json";
+        private const string savePath = "Assets/BundeManager/Editor/save.json";
         public static Color k_LightGray = Color.gray * 1.5f;
 
         private static BundleDataInfo m_RootLevelDataInfo = new BundleDataInfo("root");
@@ -98,7 +96,8 @@ namespace AssetBundles
 
         public static void Save()
         {
-            var str = JArray.FromObject(m_BundleList).ToString(Formatting.Indented);
+            var obj = new BundleFile() { Bundles = m_BundleList };
+            var str = JsonUtility.ToJson(obj);
             File.WriteAllText(savePath, str);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -118,7 +117,8 @@ namespace AssetBundles
                 return;
             }
             var json = File.ReadAllText(savePath);
-            m_BundleList = JArray.Parse(json).ToObject<List<BundleDataInfo>>() ?? new List<BundleDataInfo>();
+            var file = JsonUtility.FromJson<BundleFile>(json);
+            m_BundleList = file.Bundles;
         }
 
         public static void HandleBundleMerge(List<BundleDataInfo> draggedNodes, BundleDataInfo targetDataBundle)
@@ -217,5 +217,10 @@ namespace AssetBundles
             }
             BuildPipeline.BuildAssetBundles(outpath, lst, options, target);
         }
+    }
+
+    public class BundleFile
+    {
+        public List<BundleDataInfo> Bundles;
     }
 }
